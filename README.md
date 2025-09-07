@@ -1,152 +1,378 @@
-Crypto Fee Watcher (Outil de surveillance live des frais réseau crypto)
+LedgerLens — README complet & pro (copier/coller)
 
-Un outil open-source permettant de surveiller en temps réel les frais de sécurité (gas, fees, coûts de transaction) sur plusieurs blockchains (Bitcoin, Ethereum, Solana, XRPL, etc.) avec un backend Node.js/Express + Socket.IO et un frontend React/Tailwind + Recharts.
+> Outil open-source pour surveiller en temps réel les frais réseau (gas / fees / coûts de transaction) multi-blockchain. Backend Node.js/Express + Socket.IO, frontend React (Vite) + Tailwind + Recharts.
+Ce README est prêt à copier/coller dans README.md.
 
-✨ Fonctionnalités
+Table des matières
 
-Surveillance en temps réel des frais réseau sur plusieurs blockchains.
-
-Frontend moderne en React (Vite, TailwindCSS).
-
-Graphiques dynamiques (Recharts) pour visualiser l’évolution des frais.
-
-Backend extensible basé sur des « plugins » par blockchain.
-
-Notifications live via Socket.IO.
-
-Extensible avec webhooks/alerting et bases de données time-series.
+1. Pitch rapide
 
 
-📊 Blockchains prises en charge (par défaut)
-
-Bitcoin : API mempool.space (frais recommandés en sats/vByte).
-
-Ethereum : API Etherscan (Safe/Propose/Fast Gas en gwei).
-
-XRPL (XRP Ledger) : API officielle Ripple (data.ripple.com).
-
-Solana : via RPC public (getRecentBlockhash).
-
-EVM génériques : possibilité d’ajouter n’importe quel RPC (Polygon, Arbitrum, BSC, etc.).
+2. Fonctionnalités clés
 
 
-📂 Structure du projet
+3. Architecture (vue d’ensemble)
 
-crypto-fee-watcher/
-├── server.js           # Backend Express + Socket.IO
-├── package.json
-├── .env.example        # Variables d’environnement
-├── src/
-│   ├── App.jsx         # Frontend React principal
-│   ├── index.js        # Bootstrap React
-│   └── index.css       # TailwindCSS
 
-🚀 Installation & démarrage
+4. Prérequis
 
-1. Cloner le projet
 
-git clone https://github.com/ton-user/crypto-fee-watcher.git
+5. Installation & démarrage (dev)
+
+
+6. Configuration — .env (exemple)
+
+
+7. Scripts utiles & endpoints
+
+
+8. Déploiement (Docker / PM2 / systemd / Nginx)
+
+
+9. Ajouter un plugin blockchain (exemple)
+
+
+10. Alerting / seuils / webhooks (exemple)
+
+
+11. Monitoring & observabilité (Prometheus / logs)
+
+
+12. Sécurité — checklist pratique
+
+
+13. Tests & CI (exemple GitHub Actions)
+
+
+14. Contribuer
+
+
+15. Licence
+
+Pitch rapide
+
+Crypto Fee Watcher est une application légère et extensible permettant de monitorer en direct les frais réseau (Bitcoin, Ethereum, XRPL, Solana, EVM chains) et d’émettre des notifications / alertes quand des seuils sont dépassés. Elle cible les devs, les teams infra, et les traders.
+
+Fonctionnalités clés
+
+Surveillance en live via WebSocket (Socket.IO).
+
+Plugins modulaires par blockchain (RPC / REST).
+
+Frontend graphique avec séries temporelles (Recharts).
+
+Extensibilité : alertes webhook/Slack/Telegram, persistance time-series (InfluxDB/TimescaleDB).
+
+Endpoints HTTP pour état/dernières mesures.
+
+Architecture (vue d’ensemble)
+
+[ Collector Pollers ] -> [ Express Backend + Socket.IO ] -> [ Frontend React ]
+         |                                          \
+         v                                           `-> [ Alerting Webhooks / DB / Prometheus ]
+  (Bitcoin, Ethereum, XRPL, Solana, EVM RPCs)
+
+Prérequis
+
+Node.js >= 18 (recommandé)
+
+npm (ou yarn)
+
+(optionnel) Docker & docker-compose pour production
+
+Clé API Etherscan (pour une meilleure fiabilité Ethereum) — recommandé
+
+Installation & démarrage (dev)
+
+# 1) Cloner
+git clone https://github.com/<ton-org>/crypto-fee-watcher.git
 cd crypto-fee-watcher
 
-2. Installer les dépendances
-
+# 2) Installer dépendances
 npm install
 
-3. Configurer les variables d’environnement
+# 3) Créer .env (voir plus bas pour exemple)
+cp .env.example .env
 
-Créer un fichier .env à la racine :
-
-PORT=4000
-POLL_INTERVAL_MS=10000
-ETHERSCAN_API_KEY=ta_clef
-SOLANA_RPC=https://api.mainnet-beta.solana.com
-EXTRA_EVM_RPC=https://rpc.ankr.com/polygon   # (optionnel)
-
-4. Lancer en mode développement
-
+# 4) Lancer en dev (concurrently: backend + vite)
 npm run dev
 
-Le backend s’exécute sur http://localhost:4000 et le frontend Vite sur http://localhost:5173 (par défaut).
+Accès : backend http://localhost:4000, frontend http://localhost:5173 (Vite).
 
-5. Lancer en mode production
+Configuration — .env (exemple prêt à coller)
 
-npm run build
-npm start
+# serveur
+PORT=4000
+POLL_INTERVAL_MS=10000  # intervalle de polling en ms
 
-🔧 Personnalisation
+# APIs
+ETHERSCAN_API_KEY=TON_ETHERSCAN_KEY   # facultatif mais recommandé
+SOLANA_RPC=https://api.mainnet-beta.solana.com
+EXTRA_EVM_RPC=https://rpc.ankr.com/polygon  # exemple (optionnel)
 
-Ajouter un nouveau plugin blockchain → éditer server.js et ajouter une nouvelle fonction de récupération des frais.
+# production
+VITE_BACKEND_URL=http://localhost:4000    # côté frontend (vite)
 
-Modifier l’intervalle de polling → variable POLL_INTERVAL_MS.
+🔎 Explications rapides
 
-Déployer sur VPS/Docker/Heroku/Railway.
+POLL_INTERVAL_MS : fréquence d'interrogation des APIs/RPC (10s par défaut).
+
+ETHERSCAN_API_KEY : limite de rate améliorée pour le tracking Ethereum.
+
+EXTRA_EVM_RPC : exemple pour ajouter une RPC EVM supplémentaire.
+
+Scripts utiles & endpoints
+
+package.json — Scripts usuels
+
+{
+  "scripts": {
+    "dev": "concurrently \"nodemon server.js\" \"vite\"",
+    "start": "node server.js",
+    "build": "vite build"
+  }
+}
+
+Endpoints HTTP
+
+GET /health → { ok: true }
+
+GET /last → { ts: <timestamp>, data: [...] } (dernières mesures)
+
+WebSocket (Socket.IO) events:
+
+fees:update → payload périodique avec mesures
+
+fees:error → erreurs du poller
+
+Exemple curl :
+
+curl http://localhost:4000/last
+
+Exemple client Socket.IO (node / browser)
+
+import { io } from "socket.io-client";
+const socket = io("http://localhost:4000");
+
+socket.on("connect", () => console.log("connecté"));
+socket.on("fees:update", (payload) => {
+  console.log("mise à jour fees:", payload);
+});
+
+Déploiement — Docker (exemple)
+
+Dockerfile (backend simple)
+
+# Backend + frontend build (monolithique simple)
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app ./
+RUN npm ci --production
+EXPOSE 4000
+CMD ["node", "server.js"]
+
+docker-compose.yml (exemple minimal)
+
+version: "3.8"
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - POLL_INTERVAL_MS=10000
+      - ETHERSCAN_API_KEY=${ETHERSCAN_API_KEY}
+    restart: unless-stopped
+
+Reverse proxy Nginx (snippet HTTPS)
+
+server {
+  listen 80;
+  server_name fees.example.com;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl;
+  server_name fees.example.com;
+  ssl_certificate /etc/letsencrypt/live/fees.example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/fees.example.com/privkey.pem;
+
+  location / {
+    proxy_pass http://127.0.0.1:4000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /socket.io/ {
+    proxy_pass http://127.0.0.1:4000/socket.io/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+  }
+}
+
+Ajouter un plugin blockchain — template (copier/coller)
+
+Exemple : nouveau plugin (pseudo)
+
+// server.js (ou plugins/x_newchain.js)
+const axios = require('axios');
+
+async function fetchNewChainFees() {
+  try {
+    const res = await axios.get('https://api.newchain.org/v1/fees');
+    // normaliser la forme renvoyée
+    return { network: 'newchain', timestamp: Date.now(), data: res.data };
+  } catch (err) {
+    return { network: 'newchain', error: err.message, timestamp: Date.now() };
+  }
+}
+
+// Dans pollAll(), ajouter fetchNewChainFees()
+
+Bonnes pratiques plugin
+
+Toujours retourner { network, timestamp, data } ou { network, timestamp, error }.
+
+Gérer timeouts & retries (axios timeout + try/catch).
+
+Valider / normaliser les unités (gwei / wei / sats/vByte).
+
+Alerting / seuils / webhooks — exemple simple
+
+1) Configuration (extrait .env)
+
+ALERT_WEBHOOK=https://hooks.example.com/incoming
+ALERT_THRESHOLD_ETH_GWEI=120
+
+2) Code d’alerte (backend)
+
+const axios = require('axios');
+async function checkAlertAndNotify(measure) {
+  // exemple : measure pour ethereum
+  const fastGwei = Number(measure.data.FastGasPrice);
+  if (fastGwei >= Number(process.env.ALERT_THRESHOLD_ETH_GWEI)) {
+    await axios.post(process.env.ALERT_WEBHOOK, {
+      network: 'ethereum',
+      metric: 'FastGasPrice',
+      value: fastGwei,
+      ts: Date.now(),
+    });
+  }
+}
+
+3) Intégration
+Appeler checkAlertAndNotify() à chaque fees:update avant d’émettre l’événement socket.
+
+Monitoring & observabilité
+
+Exposer métriques Prometheus (snippet avec prom-client)
+
+const client = require('prom-client');
+const gauge = new client.Gauge({ name: 'eth_fast_gas_gwei', help: 'fast gas gwei' });
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
+Logs
+
+JSON logs (pino / winston) pour ingestion centralisée (ELK / Loki).
+
+Niveau info / warn / error, rotation et centralisation.
 
 
-🔐 Sécurité recommandée
+Persistance historique (optionnel)
 
-Ne jamais exposer directement ton backend sans HTTPS ni authentification.
+InfluxDB / TimescaleDB pour séries temporelles ; écrire mesures toutes les N minutes pour analyses historiques.
 
-Stocker les clés API dans un gestionnaire de secrets (Vault, AWS Secrets Manager, etc.).
+Sécurité — checklist pratique (obligatoire)
 
-Mettre en place du rate-limiting sur le backend.
+HTTPS partout (Nginx / Let's Encrypt).
 
-Vérifier régulièrement les dépendances NPM (audit, Snyk, Dependabot).
+Stockage sécurisé des API keys (Vault / AWS Secrets Manager).
 
-Rotation des clés API et surveillance des journaux.
+Ne jamais committer .env → .gitignore doit contenir .env.
 
+Limiter l’accès au backend par IP ou auth (JWT / API key) si exposé publiquement.
 
-📈 Améliorations possibles
+Audit dépendances :
 
-Sauvegarde des données historiques dans InfluxDB ou TimescaleDB.
+npm audit
+npm audit fix --force  # avec prudence
 
-Ajout d’alertes (Slack, Telegram, e-mail, PagerDuty).
+Scanner chaîne logistique (npm packages) et activer dépendabot.
 
-Dashboard avancé avec filtres, comparaisons et seuils personnalisés.
+Rotation des clés si une version compromise d’un package est découverte.
 
-Intégration d’autres blockchains (Avalanche, Cosmos, Near, etc.).
+Rate limiting (express-rate-limit) pour éviter abuse des APIs publiques.
 
+Tests & CI — exemple GitHub Actions (build + test)
 
-🤝 Contribution
+.github/workflows/ci.yml
 
-Les contributions sont les bienvenues !
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: node-version: 18
+      - run: npm ci
+      - run: npm run build
+      - run: npm test || true
 
-1. Fork le repo.
+> Ajouter tests unitaires (Jest) pour les fonctions de parsing/normalisation des plugins.
 
+Contribuer
 
-2. Crée une branche feature/ma-feature.
+Workflow recommandé
 
-
-3. Commit tes modifications.
-
-
-4. Ouvre une Pull Request.
-
-
-
-📜 Licence
-
-MIT — libre d’utilisation et de modification.
-
-
----
-
-💡 Exemple d’utilisation
-
-Lancer le projet, ouvrir ton navigateur et observer :
-
-les frais Bitcoin (fastest, half-hour, hour)
-
-le gas Ethereum (safe/propose/fast)
-
-les frais XRPL et Solana
+1. Fork → feature/xxx → commit → PR.
 
 
-Cet outil est utile pour :
-
-les traders qui veulent choisir le meilleur moment pour envoyer des transactions,
-
-les développeurs qui intègrent des DApps,
-
-les équipes infra qui veulent monitorer plusieurs réseaux en parallèle.
+2. Ajoute tests si tu changes de logique.
 
 
+3. Documente nouveaux plugins / variables .env.
+
+
+
+Code style : Prettier + ESLint (recommandé). Ajouter hooks husky pour lint / tests pré-commit.
+
+FAQ rapide
+
+Q : Puis-je ajouter d’autres RPC privés ?
+R : Oui, définis EXTRA_EVM_RPC ou ajoute un plugin avec ton RPC (auth si nécessaire).
+
+Q : Peut-on persister toutes les mesures ?
+R : Oui — connecter un writer InfluxDB / TimescaleDB dans la boucle pollAll().
+
+Q : Est-ce sécurisé pour production ?
+R : Le prototype l’est peu ; appliquer les recommandations de la section sécurité et déployer derrière reverse-proxy + auth.
+
+Exemple rapide — « run & voir » (copy/paste)
+
+git clone https://github.com/<ton-org>/crypto-fee-watcher.git
+cd crypto-fee-watcher
+cp .env.example .env
+# éditer .env pour ajouter ETHERSCAN_API_KEY si besoin
+npm install
+npm run dev
+# ouvrir http://localhost:5173
+
+Licence
+
+MIT — libre d’utilisation, modification et distribution.
